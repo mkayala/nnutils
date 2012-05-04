@@ -1,0 +1,82 @@
+'Monte' (or 'monte python') is a machine learning library written in 
+python. Monte is released under the license described in the LICENSE file.
+
+Monte is available at montepython.sourceforge.net
+
+
+
+Installation: 
+------------
+Installing Monte is very simple: Just copy the main directory monte/, which 
+is also the directory where you found this README file, into your python 
+search path. You should also make sure that you have the python packages 
+listed under 'Requirements' below installed. That's all! You should be ready 
+to use Monte now.
+
+
+
+Usage:
+-----
+To get an idea of how Monte works, see the file crf_example.py in the 
+subdirectory examples. A more detailed documentation of Monte's features 
+is in the making and is being provided incrementally. Check back regularly, 
+and check out the code, which explains some of its features itself.
+
+
+
+Requirements: 
+------------
+Monte needs Python 2.4 (or later), and the packages numpy (Version 1.0 or 
+later), scipy (Version 0.5.1 or later) and matplotlib (Version 0.87 or 
+later) to work best.
+
+
+
+Monte's directory layout:
+-------------------------
+
+Directory:      Purpose:
+----------      --------
+
+bp:             This directory contains trainable 'back-prop'-components. Each 
+                of these components contains an fprop-method, a bprop-method,
+                and a grad-method. Training of the components is done with 
+                error back-propagation. The method fprop computes the response 
+                of the component wrt. its input. The method bprop computes the 
+                derivative of some error-function with respect to the 
+                component's inputs from the derivative wrt. to it's outputs.
+                The method grad computes the derivative of the error wrt. the 
+                component's parameters. 
+
+models:         This directory holds trainable modules, that is components 
+                that contain cost function and gradient and can be trained 
+                using trainer objects. 
+
+models/contrastive: Many common learning machines are 'contrastive': They are 
+                trained using positive and negative examples. This directory
+                contains the definiton for an abstract class 'contrastive'
+                and a set of sub-classes that are trained using the 
+                contrastive learning paradigm. The sub-directory 'scorefunc'
+                contains a wide variety of score-functions from which 
+                complex learning machines can be constructed. Many of these 
+                score-functions make use of the back-prop-components defined 
+                in the directory bp.
+
+arch:           All top level 'architectures' are placed here -- ie. fully 
+                functional systems that can be trained with a trainer object 
+                and that can be applied easily to real data. 
+
+gym:            The definition of models and of mechanisms for training 
+                these is deliberately separated in Monte. The directory 
+                gym contains trainer-classes, that are registered with a 
+                model at construction time, and are used to train the model.
+
+examples:       This directory contains simple example-scripts, that 
+                illustrate various aspects of Monte.
+
+util:           Helper functions- and classes, such as fuctions for 
+                normalizing data, computing a 'logsumexp', etc., are placed 
+                here.
+
+doc:            Documentation.
+
