@@ -2,13 +2,13 @@
 # encoding: utf-8
 """
 A collection of Classes to encapsulate architecture models.  
-
 Also some code to load and store the ArchModels.
-
 MonteArchModel.py
 
 Created by Matt Kayala on 2010-05-06.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
+
+NOTE: has a bare bones CLI interface, but should be extended to capture the number of
+input parameters.  See nnutils.classify.MakeArchFileModel
 """
 
 import sys
@@ -20,7 +20,6 @@ from numpy.random import randn, random_sample;
 from numpy import sqrt;
 
 from MonteNeuralNetLayer import MonteNeuralNetClassifier;
-
 
 class MonteArchModel:
     """Simple class to encapsulate some common parameters for learning with the monte pacakge"""

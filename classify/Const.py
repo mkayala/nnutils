@@ -2,9 +2,10 @@
 import Env;
 
 """Application name, for example to identify a common logger object"""
-APPLICATION_NAME = "CHEM.ML.orbDB.reactAtom.app"
+APPLICATION_NAME = "nnutils.classify"
 
-"""Default level for application logging.  Modify these for different scenarios.  See Python logging package documentation for more information"""
+"""Default level for application logging.  Modify these for different scenarios.
+See Python logging package documentation for more information"""
 LOGGER_LEVEL = Env.LOGGER_LEVEL
 
 """Default format of logger output"""

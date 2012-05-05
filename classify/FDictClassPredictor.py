@@ -3,34 +3,31 @@
 """
 Given a trained model and some data in fDict format, make some predictions
 
-ReactAtomFDictPredictor.py
+FDictClassPredictor.py
 
 Created by Matt Kayala on 2010-06-30.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
-
 import sys
 import os
 import gzip;
 import csv;
 from optparse import OptionParser;
 
-from CHEM.Common.Util import ProgressDots;
-from CHEM.ML.Util import FeatureDictReader;
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModel, loadArchModel;
-from CHEM.ML.monteutils.MonteFeatDictClassifier import MonteFeatDictClassifier;
-from CHEM.ML.monteutils.Const import EPSILON;
+from nnutils.Util import ProgressDots;
+from nnutils.Util import FeatureDictReader;
+from nnutils.mutil.MonteArchModel import MonteArchModel, loadArchModel;
+from nnutils.mutil.MonteFeatDictClassifier import MonteFeatDictClassifier;
+from nnutils.mutil.Const import EPSILON;
 from numpy import array, zeros, min, max, where, newaxis;
 
 from Util import log;
 
-class ReactAtomFDictPredictor:
+class FDictClassPredictor:
     """Class to make predictions on fDict format data given a trained model."""
     def __init__(self, archModel=None, chunkSize=5000):
         """Constructor"""
         self.archModel = archModel;
         self.chunkSize = chunkSize;
-    
     
     def loadArchModelFromFile(self, fileName):
         """Convenience to load up the archModel from a file"""
@@ -41,7 +38,6 @@ class ReactAtomFDictPredictor:
         the predictions"""
         self.classifier = MonteFeatDictClassifier(self.archModel)
         self.classifier.setupModels();
-    
     
     def main(self, argv):
         """Callable from Command line"""
@@ -75,7 +71,6 @@ class ReactAtomFDictPredictor:
                         seenIds.add(row[0]);
                 else:
                     idArr.append(row);
-            #idArr = array(idArr);
             ifs.close();
             
             ifs = gzip.open(featDataFile)
@@ -100,7 +95,6 @@ class ReactAtomFDictPredictor:
             parser.print_help();
             sys.exit(2);
     
-    
     def predict(self, fDictList, idArr):
         """Run the fDictList through the trained model in chunks"""
         for start in range(0, len(idArr), self.chunkSize):
@@ -111,10 +105,7 @@ class ReactAtomFDictPredictor:
             predictions = self.classifier.apply(subFDictList);
             yield (subIdArr, predictions);
         
-        
-    
-    
 
 if __name__ == '__main__':
-    instance = ReactAtomFDictPredictor();
+    instance = FDictClassPredictor();
     sys.exit(instance.main(sys.argv));

@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Module with some different Trainer classes that can be used in the MonteOnlineQualLearner 
-code.
-
+Module with some different Trainer classes that can be used with monte
 
 MonteTrainers.py
-
 Created by Matt Kayala on 2010-01-04.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
-
-
 import sys
 import os
 from pprint import pformat;

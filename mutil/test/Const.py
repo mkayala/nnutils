@@ -1,5 +1,4 @@
 """Various constants for use by the mutil module test cases"""
-
 import logging
 
 """Application name, for example to identify a common logger object"""

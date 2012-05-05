@@ -4,7 +4,6 @@
 Util.py
 
 Created by Matt Kayala on 2010-08-11.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
 """Miscellaneous utility functions used across the application
 """
@@ -21,6 +20,5 @@ formatter = logging.Formatter(Const.LOGGER_FORMAT)
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-from CHEM.Common.Util import ProgressDots
 
 

@@ -6,15 +6,13 @@ Simple script to set up arch file models for a particular orb pair experiment.
 MakeArchFileModel.py
 
 Created by Matt Kayala on 2010-10-04.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
-
 import sys
 import os
 from optparse import OptionParser;
 import cPickle;
 
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModelMaker;
+from nnutils.mutil.MonteArchModel import MonteArchModelMaker;
 
 from Util import log;
 

@@ -4,9 +4,6 @@
 TestNormalizeFeatDicts.py
 
 Created by Matt Kayala on 2010-10-27.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
-
-A Test Case in the CHEM Module.
 """
 import sys, os;
 import unittest;
@@ -16,8 +13,6 @@ import gzip;
 from pprint import pformat;
 import string;
 import cPickle
-
-
 
 from nnutils.Util import FeatureDictReader, FeatureDictWriter;
 from nnutils.mutil.NormalizeFeatDicts import NormalizeFeatDicts;

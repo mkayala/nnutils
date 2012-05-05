@@ -4,8 +4,6 @@
 Test_MonteFeatDictPredictor.py
 
 Created by Matt Kayala on 2010-10-10.
-
-A Test Case in the CHEM Module.
 """
 import sys, os;
 import unittest;

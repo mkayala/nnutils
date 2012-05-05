@@ -6,6 +6,7 @@ Class to run through a feat dict file and make predictions
 MonteFeatDictPredictor.py
 
 Created by Matt Kayala on 2010-10-10.
+Has a CLI interface, but can be extended
 """
 import sys
 import os

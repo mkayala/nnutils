@@ -2,7 +2,6 @@
 but these can / should be changed depending on the platform / environment
 where they are installed.
 """
-
 import sys
 import logging
 

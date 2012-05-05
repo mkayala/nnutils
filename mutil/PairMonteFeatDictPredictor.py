@@ -4,9 +4,9 @@
 Class to write out predictions for a Pairwise monte feat dict predictor, callable from Command Line.
 
 PairMonteFeatDictPredictor.py
-
 Created by Matt Kayala on 2010-10-18.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
+
+Has Command line interface
 """
 
 import sys;

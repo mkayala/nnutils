@@ -12,10 +12,8 @@ PairMonteFeatDictClassifier.py
 
 Created by Matt Kayala on 2010-08-12.
 """
-
 import sys
 import os
-from optparse import OptionParser;
 import pprint;
 
 from numpy import arange, multiply, log, newaxis, zeros, min, max;
@@ -126,8 +124,6 @@ class PairMonteFeatDictClassifier:
             return self.costTrajectory;
         return self.costTrajectory;
     
-    
-    #
     def postEpochCall(self, epoch):
         """Convenience to run some stats at the end of each epoch."""
         outputs = self.apply(self.fDictList);
@@ -288,5 +284,5 @@ class PairMonteFeatDictClassifier:
         return outData.flatten();
     
 if __name__ == '__main__':
-    instance = PairMonteFeatDictClassifier();
-    sys.exit(instance.main(sys.argv));
+    ## Not meant to be called from cmd line directly
+    sys.exit(-1);

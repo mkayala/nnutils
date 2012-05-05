@@ -6,12 +6,8 @@ Class to train and apply neural net models to feature dict models.
 MonteFeatDictClassifier.py
 
 Created by Matt Kayala on 2010-06-16.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
-
-import sys
-import os
-from optparse import OptionParser;
+import sys, os
 import pprint;
 
 from numpy import arange, multiply, log, newaxis, zeros, min, max;

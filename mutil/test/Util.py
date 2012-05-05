@@ -13,8 +13,6 @@ formatter = logging.Formatter(Const.LOGGER_FORMAT)
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-
-
 ### A function for testing feature dicts:
 def spectrumExtractor(obj, k=1):
     """Create a dictionary keyed by all the k-mers (k-length substrings)

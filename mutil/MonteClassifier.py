@@ -8,7 +8,6 @@ MonteClassifier.py
 
 Created by Matt Kayala on 2010-05-06.
 """
-
 import sys
 import os
 from optparse import OptionParser;

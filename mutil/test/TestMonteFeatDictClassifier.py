@@ -4,9 +4,6 @@
 TestMonteFeatDictClassifier.py
 
 Created by Matt Kayala on 2010-06-16.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
-
-A Test Case in the CHEM Module.
 """
 import sys, os;
 import unittest;

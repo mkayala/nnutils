@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Simple script to make it easy to make an ArchFileModel for a particular experiment
+Simple script to make it easy to make an ArchFileModel given a file that lays out how many
+columns (features) there will be.
 
 MakeArchFileModel.py
 
 Created by Matt Kayala on 2010-05-10.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
 
 import sys
@@ -14,8 +14,7 @@ import os
 from optparse import OptionParser;
 import cPickle;
 
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModelMaker;
-
+from nnutils.mutil.MonteArchModel import MonteArchModelMaker;
 from Util import log;
 
 class MakeArchFileModel(MonteArchModelMaker):
