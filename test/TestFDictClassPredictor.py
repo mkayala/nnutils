@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Test_MonteFeatDictPredictor.py
+Test suite for the CLI Class that runs predictions
 
+TestFDictClassPredictor.py
 Created by Matt Kayala on 2010-10-10.
 """
 import sys, os;
@@ -17,7 +18,7 @@ import pprint;
 from nnutils.Util import FeatureDictWriter;
 from nnutils.mutil.MonteArchModel import MonteArchModel, loadArchModel, saveArchModel;
 from nnutils.mutil.MonteFeatDictClassifier import MonteFeatDictClassifier;
-from nnutils.mutil.MonteFeatDictPredictor import MonteFeatDictPredictor;
+from nnutils.classify.FDictClassPredictor import FDictClassPredictor;
 
 import Const, Util;
 from Util import log;
@@ -27,10 +28,10 @@ from numpy.random import randn;
 
 from numpy import max, min;
 
-class TestMonteFeatDictPredictor(unittest.TestCase):
+class TestFDictClassPredictor(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        super(TestMonteFeatDictPredictor, self).setUp();
+        super(TestFDictClassPredictor, self).setUp();
         
         # a file for the archmodel out
         (self.AMODELIN_FD, self.AMODELIN_FILENAME) = tempfile.mkstemp();
@@ -110,12 +111,12 @@ class TestMonteFeatDictPredictor(unittest.TestCase):
         os.remove(self.IDX_FILENAME)
         os.remove(self.OUT_FILENAME)
         
-        super(TestMonteFeatDictPredictor, self).tearDown();
+        super(TestFDictClassPredictor, self).tearDown();
     
     
     def test_basic(self):
         """Test of the running.  Test that id's and targets are correct."""
-        predictor = MonteFeatDictPredictor();
+        predictor = FDictClassPredictor();
         predictor.archModel = self.ARCHMODEL;
         predictor.setup();
         
@@ -138,7 +139,7 @@ class TestMonteFeatDictPredictor(unittest.TestCase):
     
     def test_main(self):
         """Test that the main function works as expected."""
-        predictor = MonteFeatDictPredictor();
+        predictor = FDictClassPredictor();
         args = ['', '--delim=,',  
                 self.AMODELIN_FILENAME, self.FDICT_FILENAME, self.IDX_FILENAME, self.OUT_FILENAME];
         predictor.main(args);
@@ -167,7 +168,7 @@ def suite():
     can do most of it with doctests and DocTestSuite
     """
     suite = unittest.TestSuite();
-    suite.addTest(unittest.makeSuite(TestMonteFeatDictPredictor));
+    suite.addTest(unittest.makeSuite(TestFDictClassPredictor));
     return suite;
 
 if __name__=="__main__":

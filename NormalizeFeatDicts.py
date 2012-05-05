@@ -15,8 +15,8 @@ import gzip;
 import cPickle;
 from optparse import OptionParser;
 
-from nnutils.Util import FeatureDictReader, FeatureDictWriter;
-from nnutils.Util import ProgressDots;
+from Util import FeatureDictReader, FeatureDictWriter;
+from Util import ProgressDots;
 
 from Util import log;
 from Const import EPSILON;

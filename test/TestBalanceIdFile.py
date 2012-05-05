@@ -13,7 +13,7 @@ import unittest;
 import cStringIO;
 import tempfile;
 
-from nnutils.mutil.BalanceIdFile import BalanceIdFile;
+from nnutils.BalanceIdFile import BalanceIdFile;
 
 import Const, Util;
 from Util import log;

@@ -15,7 +15,7 @@ import string;
 import cPickle
 
 from nnutils.Util import FeatureDictReader, FeatureDictWriter;
-from nnutils.mutil.NormalizeFeatDicts import NormalizeFeatDicts;
+from nnutils.NormalizeFeatDicts import NormalizeFeatDicts;
 
 import Const, Util;
 from Util import log, spectrumExtractor

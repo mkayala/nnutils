@@ -12,7 +12,7 @@ import sys
 import os
 from optparse import OptionParser;
 
-from nnutils.Util import ProgressDots;
+from Util import ProgressDots;
 from Util import log;
 
 class BalanceIdFile(object):

@@ -4,9 +4,7 @@
 Class to normalize a given feature dictionary from an existing calculated parameter set.
 
 NormFeatDictFromParams.py
-
 Created by Matt Kayala on 2011-03-13.
-Copyright (c) 2011 Institute for Genomics and Bioinformatics. All rights reserved.
 """
 
 import sys;
@@ -16,20 +14,17 @@ import cPickle;
 from optparse import OptionParser;
 
 from NormalizeFeatDicts import NormalizeFeatDicts;
-from CHEM.ML.Util import FeatureDictReader, FeatureDictWriter;
-from CHEM.Common.Util import ProgressDots;
-
+from Util import FeatureDictReader, FeatureDictWriter;
+from Util import ProgressDots;
 
 from Util import log;
 from Const import EPSILON;
-
 
 class NormFeatDictFromParams:
     """Class to normalize a given feature dictionary from an existing calculated parameter set."""
     def __init__(self):
         """Constructor"""
-        self.normObj = NormalizeFeatDicts();
-    
+        self.normObj = NormalizeFeatDicts();    
     
     def loadNormParamObj(self, paramFile):
         """Convenience to load up the normParamObj from the paramFile"""
@@ -37,7 +32,6 @@ class NormFeatDictFromParams:
         normParamObj = cPickle.load(ifs)
         ifs.close();
         return normParamObj;
-    
     
     def main(self, argv):
         """Callable from Command line"""

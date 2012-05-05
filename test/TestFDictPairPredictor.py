@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-TestPairMonteFeatDictPredictor.py
+TestFDictPairPredictor.py
 
 Created by Matt Kayala on 2010-10-18.
 """
@@ -15,7 +15,7 @@ from pprint import pformat;
 from nnutils.Util import FeatureDictWriter;
 from nnutils.mutil.Const import EPSILON
 from nnutils.mutil.MonteArchModel import MonteArchModel, saveArchModel;
-from nnutils.mutil.PairMonteFeatDictPredictor import PairMonteFeatDictPredictor;
+from nnutils.rank.FDictPairPredictor import FDictPairPredictor;
 
 from numpy import zeros, ones, concatenate, array, multiply;
 from numpy.random import randn
@@ -24,10 +24,10 @@ from numpy import max, min;
 import Const, Util;
 from Util import log;
 
-class TestPairMonteFeatDictPredictor(unittest.TestCase):
+class TestFDictPairPredictor(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        super(TestPairMonteFeatDictPredictor, self).setUp();
+        super(TestFDictPairPredictor, self).setUp();
         
         (self.ARCH_FD, self.ARCH_FILENAME) = tempfile.mkstemp();
         (self.FEAT_FD, self.FEAT_FILENAME) = tempfile.mkstemp();
@@ -104,12 +104,12 @@ class TestPairMonteFeatDictPredictor(unittest.TestCase):
         os.remove(self.OUT_FILENAME)
         os.remove(self.FEAT_FILENAME)
         
-        super(TestPairMonteFeatDictPredictor, self).tearDown();
+        super(TestFDictPairPredictor, self).tearDown();
     
     
     def test_main(self):
         """Test that the main function works as expected"""
-        instance = PairMonteFeatDictPredictor()
+        instance = FDictPairPredictor()
         args = ['', self.ARCH_FILENAME, self.FEAT_FILENAME, self.OUT_FILENAME]
         instance.main(args)
         
@@ -131,7 +131,7 @@ def suite():
     can do most of it with doctests and DocTestSuite
     """
     suite = unittest.TestSuite();
-    suite.addTest(unittest.makeSuite(TestPairMonteFeatDictPredictor));
+    suite.addTest(unittest.makeSuite(TestFDictPairPredictor));
     return suite;
 
 if __name__=="__main__":

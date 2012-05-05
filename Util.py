@@ -23,6 +23,18 @@ import time
 
 import Const
 from Const import FEATURE_PREFIX, KEY_DELIM, TEXT_DELIM;
+import logging
+
+log = logging.getLogger(Const.APPLICATION_NAME)
+log.setLevel(Const.LOGGER_LEVEL)
+
+handler = logging.StreamHandler(sys.stderr)
+formatter = logging.Formatter(Const.LOGGER_FORMAT)
+
+handler.setFormatter(formatter)
+log.addHandler(handler)
+
+## Then utility classes.
 
 class FeatureDictWriter(dict):
     """Utility class to encode data feature vectors 
