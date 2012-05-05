@@ -6,9 +6,6 @@ TestPairMonteFeatDictClassifier.py
 Test that the code to run the pairwise feat dict classification works as expected.
 
 Created by Matt Kayala on 2010-08-12.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
-
-A Test Case in the CHEM Module.
 """
 import sys, os;
 import unittest;
@@ -17,28 +14,24 @@ import tempfile;
 
 import pprint;
 
-from CHEM.ML.monteutils.PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModel;
-from CHEM.ML.monteutils.Util import rmse, accuracy, sigmoid;
-from CHEM.ML.monteutils.Const import MEMMAP_DTYPE, OFFSET_EPSILON;
+from nnutils.mutil.PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
+from nnutils.mutil.MonteArchModel import MonteArchModel;
+from nnutils.mutil.Util import rmse, accuracy, sigmoid;
+from nnutils.mutil.Const import OFFSET_EPSILON;
 
 from numpy import zeros, ones, concatenate, array, multiply, log, memmap, where;
 from numpy.random import randn
-
 from numpy import max, min;
-
-from CHEM.Common.test.Util import ChemDBTestCase;
 
 import Const, Util;
 from Util import log as myLogger;
 
-class TestPairMonteFeatDictClassifier(ChemDBTestCase):
+class TestPairMonteFeatDictClassifier(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        ChemDBTestCase.setUp(self);
+        super(TestPairMonteFeatDictClassifier, self).setUp();
         
         self.LOW_DIST_MEANS = array([10, -10, 5, -5]);
-        #self.LOW_DIST_MEANS = array([100, -100, 50, -50]);
         self.LOW_DIST_VARS = array([5, 5, 5, 5])
         
         self.HIGH_DIST_MEANS = array([3, 2, 0, 5]);
@@ -73,10 +66,8 @@ class TestPairMonteFeatDictClassifier(ChemDBTestCase):
     
     def tearDown(self):
         """Restore state"""
-        ChemDBTestCase.tearDown(self);
-
-    
-    #
+        super(TestPairMonteFeatDictClassifier, self).tearDown();
+        
     def __generateFeatDictList(self, numPoints, featMeans, featVars):
         """Convenience to generate a list of featDicts, where each of the features are norm distributed with the 
         parameters"""
@@ -92,7 +83,6 @@ class TestPairMonteFeatDictClassifier(ChemDBTestCase):
         
         return featDictList;
     
-    #
     def __generateProbMatFeatDictList(self, featDictList1, featDictList2):
         """Convenience to take two feat dict lists and return the featDictList, probMat to be able to write out 
         as input. """
@@ -106,8 +96,6 @@ class TestPairMonteFeatDictClassifier(ChemDBTestCase):
         
         return (retFeatDictList, probMat);
     
-    
-    #
     def __generalTest(self, featDictList, probArr, archModel):
         """Convenience to test things multiple times"""
         classifier = PairMonteFeatDictClassifier(archModel, featDictList, probArr);
@@ -132,10 +120,6 @@ class TestPairMonteFeatDictClassifier(ChemDBTestCase):
         beginRMSE = currRMSE;
         
         myLogger.info('(Cost, Acc, RMSE, decay) before training: (%.4f, %.4f, %.4f, %.4f)' % (currCost, currAcc, currRMSE, decayContrib));
-        myLogger.info('head(lData) : %s, tail(lData) : %s' % (pprint.pformat(lData[:5]), pprint.pformat(lData[-5:])))
-        myLogger.info('head(rData) : %s, tail(rData) : %s' % (pprint.pformat(rData[:5]), pprint.pformat(rData[-5:])))
-        #myLogger.info('head(dataArr) : %s, tail(dataArr) : %s' % (pprint.pformat(featDictList[:5]), pprint.pformat(featDictList[-5:])))        
-        myLogger.info('Starting params : %s' % pprint.pformat(classifier.params))
         
         classifier.train();
         
@@ -156,10 +140,6 @@ class TestPairMonteFeatDictClassifier(ChemDBTestCase):
         currAcc = accuracy(outputs, 1);
         
         myLogger.info('(Cost, Acc, RMSE, decay) after training: (%.4f, %.4f, %.4f, %.4f)' % (currCost, currAcc, currRMSE, decayContrib));
-        myLogger.info('head(lData) : %s, tail(lData) : %s' % (pprint.pformat(lData[:5]), pprint.pformat(lData[-5:])))
-        myLogger.info('head(rData) : %s, tail(rData) : %s' % (pprint.pformat(rData[:5]), pprint.pformat(rData[-5:])))
-        #myLogger.info('head(dataArr) : %s, tail(dataArr) : %s' % (pprint.pformat(featDictList[:5]), pprint.pformat(featDictList[-5:])))        
-        #myLogger.info('Starting params : %s' % pprint.pformat(classifier.params))
         
         self.assert_(currRMSE < beginRMSE, 'RMSE did not decrease.');
     

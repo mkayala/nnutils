@@ -14,8 +14,8 @@ import os;
 import gzip;
 from optparse import OptionParser;
 
-from CHEM.Common.Util import ProgressDots;
-from CHEM.ML.Util import FeatureDictReader;
+from nnutils.Util import ProgressDots;
+from nnutils.Util import FeatureDictReader;
 from MonteArchModel import MonteArchModel, loadArchModel;
 from PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
 from Const import EPSILON;
@@ -29,7 +29,6 @@ class PairMonteFeatDictPredictor:
         """Constructor"""
         self.archModel = archModel;
         self.chunkSize = chunkSize
-    
     
     def loadArchModelFromFile(self, fileName):
         """Convenience to load up the archModel from a file"""
@@ -94,9 +93,6 @@ class PairMonteFeatDictPredictor:
         if len(fDataList) > 0:
             for val in self.predictor.apply(fDataList):
                 yield val;
-    
-    
-
 
 if __name__ == '__main__':
     instance = PairMonteFeatDictPredictor();

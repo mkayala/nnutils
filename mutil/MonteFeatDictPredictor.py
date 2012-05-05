@@ -6,19 +6,15 @@ Class to run through a feat dict file and make predictions
 MonteFeatDictPredictor.py
 
 Created by Matt Kayala on 2010-10-10.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
-
 import sys
 import os
 import gzip;
 import csv;
 from optparse import OptionParser;
 
-from optparse import OptionParser;
-
-from CHEM.Common.Util import ProgressDots;
-from CHEM.ML.Util import FeatureDictReader;
+from nnutils.Util import ProgressDots;
+from nnutils.Util import FeatureDictReader;
 from MonteArchModel import MonteArchModel, loadArchModel;
 from MonteFeatDictClassifier import MonteFeatDictClassifier;
 from Const import EPSILON;
@@ -33,13 +29,11 @@ class MonteFeatDictPredictor:
         self.archModel = archModel;
         self.chunkSize = chunkSize;
     
-    
     def setup(self):
         """Given that the self.archModel is correctly loaded, setup the machinery to run 
         the predictions"""
         self.classifier = MonteFeatDictClassifier(self.archModel)
         self.classifier.setupModels();
-    
     
     def main(self, argv):
         """Callable from Command line"""
@@ -67,14 +61,12 @@ class MonteFeatDictPredictor:
             idArr = [];
             for row in reader:
                 row[0] = int(row[0]);
-                #row[1:] = [float(x) for x in row[1:]];
                 if options.deduplicate:
                     if row[0] not in seenIds: 
                         idArr.append(row);
                         seenIds.add(row[0]);
                 else:
                     idArr.append(row);
-            #idArr = array(idArr);
             ifs.close();
             
             ifs = gzip.open(featDataFile)
@@ -110,8 +102,6 @@ class MonteFeatDictPredictor:
             predictions = self.classifier.apply(subFDictList);
             yield (subIdArr, predictions);
     
-    
-
 if __name__ == '__main__':
     instance = MonteFeatDictPredictor();
     sys.exit(instance.main(sys.argv));

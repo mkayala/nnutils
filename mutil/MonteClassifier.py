@@ -7,7 +7,6 @@ working directly with arrays
 MonteClassifier.py
 
 Created by Matt Kayala on 2010-05-06.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 """
 
 import sys

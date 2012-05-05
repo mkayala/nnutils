@@ -4,7 +4,6 @@
 Test_MonteFeatDictPredictor.py
 
 Created by Matt Kayala on 2010-10-10.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
 
 A Test Case in the CHEM Module.
 """
@@ -17,12 +16,10 @@ import csv;
 import gzip;
 import pprint;
 
-from CHEM.ML.Util import FeatureDictWriter;
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModel, loadArchModel, saveArchModel;
-from CHEM.ML.monteutils.MonteFeatDictClassifier import MonteFeatDictClassifier;
-from CHEM.ML.monteutils.MonteFeatDictPredictor import MonteFeatDictPredictor;
-
-from CHEM.Common.test.Util import ChemDBTestCase
+from nnutils.Util import FeatureDictWriter;
+from nnutils.mutil.MonteArchModel import MonteArchModel, loadArchModel, saveArchModel;
+from nnutils.mutil.MonteFeatDictClassifier import MonteFeatDictClassifier;
+from nnutils.mutil.MonteFeatDictPredictor import MonteFeatDictPredictor;
 
 import Const, Util;
 from Util import log;
@@ -32,10 +29,10 @@ from numpy.random import randn;
 
 from numpy import max, min;
 
-class Test_MonteFeatDictPredictor(ChemDBTestCase):
+class TestMonteFeatDictPredictor(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        ChemDBTestCase.setUp(self);
+        super(TestMonteFeatDictPredictor, self).setUp();
         
         # a file for the archmodel out
         (self.AMODELIN_FD, self.AMODELIN_FILENAME) = tempfile.mkstemp();
@@ -102,8 +99,6 @@ class Test_MonteFeatDictPredictor(ChemDBTestCase):
             writer.writerow(line);
         ofs.close();
     
-    
-    
     def tearDown(self):
         """Restore state"""
         # Tear down all the temp files.
@@ -117,7 +112,7 @@ class Test_MonteFeatDictPredictor(ChemDBTestCase):
         os.remove(self.IDX_FILENAME)
         os.remove(self.OUT_FILENAME)
         
-        ChemDBTestCase.tearDown(self);
+        super(TestMonteFeatDictPredictor, self).tearDown();
     
     
     def test_basic(self):
@@ -132,8 +127,6 @@ class Test_MonteFeatDictPredictor(ChemDBTestCase):
             start = currRow; 
             end = currRow + len(retPred);
             expectedTarg = self.IDX_ARR[start:end];
-            #retTarg = array(retTarg)
-            #expectedTarg = array(expectedTarg)
             for r, e in zip(retTarg, expectedTarg):
                 r = array(r)
                 e = array(e)
@@ -164,7 +157,6 @@ class Test_MonteFeatDictPredictor(ChemDBTestCase):
             self.assert_(row[-1] >= 0)
         ifs.close();
         
-        log.info('iRow : %d' % iRow)
         self.assertEqual(iRow +1, len(self.IDX_ARR));
 
 
@@ -177,7 +169,7 @@ def suite():
     can do most of it with doctests and DocTestSuite
     """
     suite = unittest.TestSuite();
-    suite.addTest(unittest.makeSuite(Test_MonteFeatDictPredictor));
+    suite.addTest(unittest.makeSuite(TestMonteFeatDictPredictor));
     return suite;
 
 if __name__=="__main__":

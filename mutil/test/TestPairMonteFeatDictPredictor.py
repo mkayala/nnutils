@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Test_PairMonteFeatDictPredictor.py
+TestPairMonteFeatDictPredictor.py
 
 Created by Matt Kayala on 2010-10-18.
-Copyright (c) 2010 Institute for Genomics and Bioinformatics. All rights reserved.
-
-A Test Case in the CHEM Module.
 """
 import sys, os;
 import unittest;
@@ -15,23 +12,22 @@ import tempfile;
 import gzip;
 from pprint import pformat;
 
-from CHEM.Common.test.Util import ChemDBTestCase;
-from CHEM.ML.Util import FeatureDictWriter;
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModel, saveArchModel;
-from CHEM.ML.monteutils.PairMonteFeatDictPredictor import PairMonteFeatDictPredictor;
+from nnutils.Util import FeatureDictWriter;
+from nnutils.mutil.Const import EPSILON
+from nnutils.mutil.MonteArchModel import MonteArchModel, saveArchModel;
+from nnutils.mutil.PairMonteFeatDictPredictor import PairMonteFeatDictPredictor;
 
 from numpy import zeros, ones, concatenate, array, multiply;
 from numpy.random import randn
-
 from numpy import max, min;
 
 import Const, Util;
 from Util import log;
 
-class TestPairMonteFeatDictPredictor(ChemDBTestCase):
+class TestPairMonteFeatDictPredictor(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        ChemDBTestCase.setUp(self);
+        super(TestPairMonteFeatDictPredictor, self).setUp();
         
         (self.ARCH_FD, self.ARCH_FILENAME) = tempfile.mkstemp();
         (self.FEAT_FD, self.FEAT_FILENAME) = tempfile.mkstemp();
@@ -108,7 +104,7 @@ class TestPairMonteFeatDictPredictor(ChemDBTestCase):
         os.remove(self.OUT_FILENAME)
         os.remove(self.FEAT_FILENAME)
         
-        ChemDBTestCase.tearDown(self);
+        super(TestPairMonteFeatDictPredictor, self).tearDown();
     
     
     def test_main(self):
@@ -117,7 +113,7 @@ class TestPairMonteFeatDictPredictor(ChemDBTestCase):
         args = ['', self.ARCH_FILENAME, self.FEAT_FILENAME, self.OUT_FILENAME]
         instance.main(args)
         
-        self.assertAlmostEqualsList(instance.archModel.params, self.ARCH_MDL.params );
+        self.assert_(all(abs(instance.archModel.params - self.ARCH_MDL.params) < EPSILON))
         
         ifs = open(self.OUT_FILENAME)
         data = [float(line.strip()) for line in ifs]
@@ -125,10 +121,6 @@ class TestPairMonteFeatDictPredictor(ChemDBTestCase):
         
         self.assertEqual(len(data), len(self.FEAT_DATA))
         
-        # Could also assert that this is the same as data running through pred on own.., but no worries
-        log.info('Head data: %s' % pformat(data[:5]))
-        log.info('Tail data: %s' % pformat(data[-5:]))
-
 
 def suite():
     """Returns the suite of tests to run for this test class / module.
