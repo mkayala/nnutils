@@ -1,0 +1,26 @@
+nnutils: Neural Network Training for Sparse Data
+
+Copyright (C) 2009-2012 Matt Kayala
+
+nnutils is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+DAOOPT is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with nnutils.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+EXCLUDED CODE: The files described below are not
+covered by the above license:
+
+* Files: monte/*
+  Monte: gradient based learning, version 0.1.0
+  Copyright (c) 2007 Roland Memisevic;  All Rights Reserved
+  http://montepython.sourceforge.net/
