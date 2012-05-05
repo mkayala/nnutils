@@ -3,12 +3,11 @@
 """
 Class to write out predictions for a Pairwise monte feat dict predictor, callable from Command Line.
 
-PairMonteFeatDictPredictor.py
+FDictPairPredictor.py
 Created by Matt Kayala on 2010-10-18.
 
 Has Command line interface
 """
-
 import sys;
 import os;
 import gzip;
@@ -16,14 +15,14 @@ from optparse import OptionParser;
 
 from nnutils.Util import ProgressDots;
 from nnutils.Util import FeatureDictReader;
-from MonteArchModel import MonteArchModel, loadArchModel;
-from PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
-from Const import EPSILON;
+from nnutils.mutil.MonteArchModel import MonteArchModel, loadArchModel;
+from nnutils.mutil.PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
+from nnutils.mutil.Const import EPSILON;
 from numpy import array, zeros, min, max, where, newaxis;
 
 from Util import log;
 
-class PairMonteFeatDictPredictor:
+class FDictPairPredictor:
     """Class to make predictions on fDict format data given a trained pairwise model"""
     def __init__(self, archModel=None, chunkSize=500):
         """Constructor"""
@@ -38,7 +37,6 @@ class PairMonteFeatDictPredictor:
         """Given that self.archModel is correctly loaded, setup machinery to run predictions"""
         self.predictor = PairMonteFeatDictClassifier(self.archModel)
         self.predictor.setupModels();
-    
     
     def main(self, argv):
         """Callable from Command line"""
@@ -74,11 +72,9 @@ class PairMonteFeatDictPredictor:
             
             ifs.close();
             ofs.close();
-            
         else:
             parser.print_help();
             sys.exit(2);
-    
     
     def predict(self, reader):
         """Run through the data, predicting a value for each data point"""
@@ -95,5 +91,5 @@ class PairMonteFeatDictPredictor:
                 yield val;
 
 if __name__ == '__main__':
-    instance = PairMonteFeatDictPredictor();
+    instance = FDictPairPredictor();
     sys.exit(instance.main(sys.argv));
