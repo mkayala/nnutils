@@ -23,8 +23,6 @@ from numpy.random import randn
 
 from numpy import max, min;
 
-
-
 import Const, Util;
 from Util import log as myLogger;
 

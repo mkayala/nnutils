@@ -14,26 +14,22 @@ import cStringIO;
 import tempfile;
 import pprint;
 
-from CHEM.ML.monteutils.MonteFeatDictClassifier import MonteFeatDictClassifier;
-from CHEM.ML.monteutils.MonteArchModel import MonteArchModel;
-from CHEM.ML.monteutils.Util import rmse, accuracy;
-from CHEM.ML.monteutils.Const import MEMMAP_DTYPE;
+from nnutils.mutil.MonteFeatDictClassifier import MonteFeatDictClassifier;
+from nnutils.mutil.MonteArchModel import MonteArchModel;
+from nnutils.mutil.Util import rmse, accuracy;
 
 from numpy import zeros, ones, concatenate, array, multiply, log, memmap;
 from numpy.random import randn
 
 from numpy import max, min;
 
-from CHEM.Common.test.Util import ChemDBTestCase;
-
-
 import Const, Util;
 from Util import log as myLogger;
 
-class TestMonteFeatDictClassifier(ChemDBTestCase):
+class TestMonteFeatDictClassifier(unittest.TestCase):
     def setUp(self):
         """Set up anything for the tests.., """
-        ChemDBTestCase.setUp(self);
+        super(TestMonteFeatDictClassifier, self).setUp();
         
         # Setup some fake data
         numFeats = 3;
@@ -83,7 +79,7 @@ class TestMonteFeatDictClassifier(ChemDBTestCase):
     
     def tearDown(self):
         """Remove the data, cleanup"""
-        ChemDBTestCase.tearDown(self);
+        super(TestMonteFeatDictClassifier, self).tearDown();
     
     
     def __generalTest(self, featDictList, targArr, archModel, idxArr):
@@ -99,10 +95,10 @@ class TestMonteFeatDictClassifier(ChemDBTestCase):
         currAcc = accuracy(currOut, targArr);
         
         myLogger.info('(Cost, Acc, RMSE, decay) before training: (%.4f, %.4f, %.4f, %.4f)' % (currCost, currAcc, currRMSE, decayContrib));
-        myLogger.info('head(targArr) : %s, tail(targArr) : %s' % (pprint.pformat(targArr[:5]), pprint.pformat(targArr[-5:])))
-        myLogger.info('head(dataArr) : %s, tail(dataArr) : %s' % (pprint.pformat(featDictList[:5]), pprint.pformat(featDictList[-5:])))        
-        myLogger.info('head(currOut) : %s, tail(currOut) : %s' % (pprint.pformat(currOut[:5]), pprint.pformat(currOut[-5:])))
-        myLogger.info('Starting params : %s' % pprint.pformat(classifier.params))
+        #myLogger.info('head(targArr) : %s, tail(targArr) : %s' % (pprint.pformat(targArr[:5]), pprint.pformat(targArr[-5:])))
+        #myLogger.info('head(dataArr) : %s, tail(dataArr) : %s' % (pprint.pformat(featDictList[:5]), pprint.pformat(featDictList[-5:])))        
+        #myLogger.info('head(currOut) : %s, tail(currOut) : %s' % (pprint.pformat(currOut[:5]), pprint.pformat(currOut[-5:])))
+        #myLogger.info('Starting params : %s' % pprint.pformat(classifier.params))
         
         classifier.train();
         
@@ -114,12 +110,10 @@ class TestMonteFeatDictClassifier(ChemDBTestCase):
         fAcc = accuracy(fOut, targArr);
         
         myLogger.info('(Cost, Acc, RMSE, decay) after training: (%.4f, %.4f, %.4f, %.4f)' % (fCost, fAcc, fRMSE, decayContrib));
-        myLogger.info('head(fOut) : %s, tail(fOut) : %s' % (pprint.pformat(fOut[:5]), pprint.pformat(fOut[-5:])))
+        #myLogger.info('head(fOut) : %s, tail(fOut) : %s' % (pprint.pformat(fOut[:5]), pprint.pformat(fOut[-5:])))
         myLogger.info('Final params : %s' % pprint.pformat(classifier.params))
         
         self.assert_(fRMSE < currRMSE, 'RMSE did not decrease.')
-    
-    
     
     def test_GDescApapt(self):
         """Test of simple run through using ."""
@@ -137,8 +131,6 @@ class TestMonteFeatDictClassifier(ChemDBTestCase):
         self.ARCH_MDL.numEpochs = 10;
         self.ARCH_MDL.learningrate = 1;
         self.__generalTest(self.FEAT_DATA, self.TARG_ARR, self.ARCH_MDL, self.IDX_ARR);
-
-
 
 
 def suite():

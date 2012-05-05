@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Class to Train a simple monte classifier 
+Class to Train a simple monte classifier
+working directly with arrays
 
 MonteClassifier.py
 

@@ -23,11 +23,11 @@ from MonteTrainers import loadMonteTrainer;
 from MonteNeuralNetLayer import MonteNeuralNetClassifier;
 
 from Util import log as myLog, accuracy, sigmoid, rmse;
-from Const import OFFSET_EPSILON, PRECISION_FIX;
+from Const import OFFSET_EPSILON
 
 class MonteFeatDictClassifier:
     """Class to train or predict with a basic classifier, using feature dictionaries"""
-    def __init__(self, archModel=None, fDictList=None, targetArr=None, idxArr=None, callback=None):
+    def __init__(self, archModel=None, fDictList=None, targetArr=None, idxArr=None, callback=None, chunklog=False, epochlog=True):
         """Constructor
         
         archModel - is a MonteArchModel object with parameters and machine specifics
@@ -51,7 +51,10 @@ class MonteFeatDictClassifier:
         self.callback = callback;
         
         self.costTrajectory = [];
-    
+        
+        ## Logging
+        self.chunklog = chunklog
+        self.epochlog = epochlog
     
     def setupModels(self):
         """Build the basic trainer setup - based on the ArchModel"""
@@ -80,11 +83,7 @@ class MonteFeatDictClassifier:
     def train(self):
         """Method to run through all the data and train away"""
         self.costTrajectory = [];
-        # Write out some info about the param vectors, are these at the same address?
-        #myLog.debug('Train.  self.trainer.model.params.__eq__ : %s, self.params.__eq__ : %s'% (self.trainer.model.params.__eq__, self.params.__eq__))
-        #myLog.debug('self.archModel.params.__eq__ : %s, self.layerModel.params.__eq__ : %s' % (self.archModel.params.__eq__, self.layerModel.params.__eq__))
-        #myLog.debug('self.layerModel.bplayer.params.__eq__ : %s' % (self.layerModel.bplayer.params.__eq__));
-
+        
         # Set some things up if doing online
         c1Idx = None;
         c0Idx = None;
@@ -92,7 +91,7 @@ class MonteFeatDictClassifier:
             shuffIdx = arange(0, len(self.idxArr));
             c1Idx = shuffIdx[self.targetArr == 1];
             c0Idx = shuffIdx[self.targetArr == 0];
-            myLog.debug('len(c1Idx) : %d, len(c0Idx) : %d' % (len(c1Idx), len(c0Idx)));
+            #myLog.debug('len(c1Idx) : %d, len(c0Idx) : %d' % (len(c1Idx), len(c0Idx)));
             numOnlineRuns = int(len(self.idxArr)/float(self.onlineChunkSize)) + 1;
             c1Step = int(len(c1Idx) / numOnlineRuns) + 1;
             c0Step = int(len(c0Idx) / numOnlineRuns) + 1;
@@ -120,10 +119,10 @@ class MonteFeatDictClassifier:
                         subTargets = self.targetArr[theInds];
                         subIdx = self.idxArr[theInds];
                         self.trainer.step(self.fDictList, subTargets, subIdx, onlineAdjustmentFactor);
-                
-                myLog.debug('About to call cost in postEpoch call')
+
+                if self.epochlog:
+                    myLog.debug('About to call cost in postEpoch call')
                 self.postEpochCall(iEpoch);
-                
                 
                 # Test for convergence
                 if len(self.costTrajectory) > self.convergeEpochs + 1:
@@ -153,11 +152,10 @@ class MonteFeatDictClassifier:
         decayContrib = self.l2decay * (self.params**2).sum();
         theAcc = accuracy(outputs, self.targetArr);
         theRMSE = rmse(outputs, self.targetArr);
-        
-        # Here, dont adjust based on data size, do this within the cost/grad function
-        #currCost /= float(self.dataArr.shape[0]);
-        myLog.info('Epoch %d, curr Cost: %f, decayCont: %f ' % (epoch, currCost, decayContrib));
-        myLog.info('Epoch %d, theAcc: %f, theRMSE: %f' % (epoch, theAcc, theRMSE));
+
+        if self.epochlog:
+            myLog.info('Epoch %d, curr Cost: %f, decayCont: %f ' % (epoch, currCost, decayContrib));
+            myLog.info('Epoch %d, theAcc: %f, theRMSE: %f' % (epoch, theAcc, theRMSE));
         self.costTrajectory.append(currCost);
     
     
@@ -166,32 +164,26 @@ class MonteFeatDictClassifier:
         
         Even in batch mode, we iterate over the data in smaller chunks.
         """
-        myLog.debug('len(idxArr) : %s, targetArr.sum() : %.4f' % (pprint.pformat(len(idxArr)), targetArr.sum()))
         theCost = 0;
         for subData, subTarg in self.gradChunkDataIterator(fDictList, targetArr, idxArr):            
             outputs = self.layerModel.fprop(subData);
             outputs = where(outputs < OFFSET_EPSILON, OFFSET_EPSILON, outputs);
             outputs = where(outputs > 1-OFFSET_EPSILON, 1-OFFSET_EPSILON, outputs);
-            #myLog.debug('outputs : %s, min(outputs) : %.4f, max(outputs) : %.4f' % (pprint.pformat(outputs), min(outputs), max(outputs)));
+            
             # Cross-Entropy
             error = multiply(subTarg, log(outputs)) + multiply(1 - subTarg, log(1-outputs));
-            #myLog.debug('error : %s, error.shape : %s, any(isnan(error)) :%s' % (pprint.pformat(error), pprint.pformat(error.shape), pprint.pformat(any(isnan(error))))); 
-            # Getting overflow errors, so scale each of these by curr size (this is a rowVector in a 2D array)
-            #myLog.debug('mean(error) : %.4f' % mean(error))
-            #error /= outputs.shape[1];
             newCostContrib = error.sum();
             theCost -= newCostContrib;
-            #myLog.debug('Ingrad step, newCostContrib : %.4f, theCost : %.4f' % (newCostContrib, theCost));
         
         decayContribution = self.l2decay * (self.params**2).sum();
-        #myLog.debug('in cost, decayContribution : %.4f' % decayContribution);
         
         if onlineAdjustmentFactor is not None:
             # Basically a way to make the cost at each small step be a little smaller (cause 
             # we end up taking more gradient steps)
             decayContribution *= onlineAdjustmentFactor;
-            
-        myLog.debug('decayContribution : %.4f, cost : %.4f' % (decayContribution, theCost));
+
+        if self.chunklog:
+            myLog.debug('decayContribution : %.4f, cost : %.4f' % (decayContribution, theCost));
         theCost += decayContribution;
         
         return theCost;
@@ -204,7 +196,6 @@ class MonteFeatDictClassifier:
         Converts the fDictList into the dataArr.  (Assumes that the keys of the dictionary
         are the columns);
         """
-        #myLog.info('fDictList : %s' % pprint.pformat(fDictList));
         for rowStart in range(0, len(idxArr), self.gradientChunkSize):
             self.dataArr *= 0.0;
             rowEnd = rowStart + self.gradientChunkSize;
@@ -217,7 +208,6 @@ class MonteFeatDictClassifier:
                     except Exception, e:
                         myLog.critical('iRow: %s, colIdx: %s, val: %s' % (pprint.pformat(iRow), pprint.pformat(colIdx), pprint.pformat(val)));
                         raise e;
-            #yield PRECISION_FIX * dataArr[rowStart:rowEnd, :].T, targetArr[rowStart:rowEnd].T;
             numRows = len(subIdxArr);
             yield self.dataArr[:numRows, :].T, subTargArr[:numRows].T;
     
@@ -231,30 +221,28 @@ class MonteFeatDictClassifier:
         maxDOut = [];
         for subData, subTarg in self.gradChunkDataIterator(fDictList, targetArr, idxArr):
             actual_out = self.layerModel.fprop(subData);
-            #myLog.debug('actual_out : %s, actual_out.shape = %s' % (pprint.pformat(actual_out), pprint.pformat(actual_out.shape)))
             d_outputs = actual_out - subTarg;
             meanDOut.append(mean(abs(d_outputs)));
             minDOut.append(min(d_outputs));
             maxDOut.append(max(d_outputs));
-            #myLog.debug('d_outputs : %s, d_outputs.shape = %s' % (pprint.pformat(d_outputs), pprint.pformat(d_outputs.shape)))
             self.layerModel.bprop(d_outputs, subData);
             currGradContrib = self.layerModel.grad(d_outputs, subData)
-            #Again getting overflow, so scale by size of the current data
-            #myLog.debug('Before scaling: ||currGradContrib|| = %.6f, len(actual_out) : %d ' % (((currGradContrib.sum(1))**2).sum(), len(actual_out)));
             currGradContrib = currGradContrib.sum(1);
-            #currGradContrib /= actual_out.shape[1];
-            currGrad += currGradContrib;
-            #myLog.debug('||currGradContrib|| = %.4f, ||currGrad|| = %.4f' % ((currGradContrib**2).sum(), (currGrad**2).sum()));
 
-        #myLog.debug('mean(abs(d_outputs)) : %.4f, min(d_outputs): %.4f, max(d_outputs) : %.4f' % (mean(meanDOut), min(minDOut), max(maxDOut)))
+            currGrad += currGradContrib;
+
         decayContribution = 2 * self.l2decay * self.params;
         
-        #myLog.debug('decayContribution : %s' % pprint.pformat(decayContribution));
         if onlineAdjustmentFactor is not None:
             decayContribution *= onlineAdjustmentFactor;
         
         currGrad += decayContribution;
-        myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' % (abs(currGrad).sum(), self.l2decay * (self.params**2).sum(), mean(currGrad), max(abs(currGrad))));
+        if self.chunklog:
+            myLog.debug('mean(abs(d_outputs)) : %.4f, min(d_outputs): %.4f, max(d_outputs) : %.4f' % \
+                        (mean(meanDOut), min(minDOut), max(maxDOut)))
+            myLog.debug('decayContribution : %s' % pprint.pformat(decayContribution));
+            myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' % \
+                        (abs(currGrad).sum(), self.l2decay * (self.params**2).sum(), mean(currGrad), max(abs(currGrad))));
         return currGrad;
     
     
@@ -264,12 +252,9 @@ class MonteFeatDictClassifier:
         idxArr = array(range(len(newData)));
         for dataChunk, outDataChunk in self.gradChunkDataIterator(newData, outData, idxArr):
             actOut = self.layerModel.fprop(dataChunk);
-            #myLog.debug('actOut.shape : %s, outDataChunk.shape : %s' % (pprint.pformat(actOut.shape), pprint.pformat(outDataChunk.shape)));
             outDataChunk += actOut.flatten();
         return outData.flatten();
     
-    
-
 if __name__ == '__main__':
     print "Not meant to be called from command line directly"
     sys.exit(-1);
