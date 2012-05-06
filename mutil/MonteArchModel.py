@@ -40,7 +40,7 @@ class MonteArchModel:
         self.costEpsilon = 1E-6;
         self.batch = False;
         self.exponentAvgM = 0.95;
-        self.qLearningRate = 0.05;
+        self.qLearningRate = 0.01;
         
         self.params = None;
         self.costTrajectory = None;

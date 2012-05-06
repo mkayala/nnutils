@@ -75,6 +75,8 @@ class PairMonteFeatDictClassifier:
         self.gradientChunkSize = self.archModel.gradientChunkSize;
         self.numEpochs = self.archModel.numEpochs;
         self.l2decay = self.archModel.l2decay;
+        self.l2decay /= len(self.fDictList)
+        self.totalL2Decay = self.archModel.l2decay
         self.costEpsilon = self.archModel.costEpsilon;
         
         # Set up the data array
@@ -90,20 +92,53 @@ class PairMonteFeatDictClassifier:
         numOnlineRuns = int((self.problemArr.shape[0])/float(self.onlineChunkSize)) + 1;
         theIdx = arange(0, self.problemArr.shape[0])
         theStep = int(len(theIdx) / numOnlineRuns) + 1;
+
+        ## Check if we have some null rows.  If we do, then stratify the rows trained on in each 
+        ## online step
+        ## We don't want a complete step of left -1's or right -1's.
+        isNullRows = (self.problemArr[:,0] == -1) |  (self.problemArr[:, 1] == -1)
+        isNullRows = any(isNullRows)
+        if isNullRows:
+            myLog.info('Have -1 in problemArr, stratifying the online step data')
+            nNullIdx = theIdx[(self.problemArr[:,0] != -1) & (self.problemArr[:,1] != -1)]
+            lNullIdx = theIdx[self.problemArr[:,0] == -1]
+            rNullIdx = theIdx[self.problemArr[:,1] == -1]
+
+            nNullStep = int(len(nNullIdx)/numOnlineRuns) + 1
+            lNullStep = int(len(lNullIdx)/numOnlineRuns) + 1
+            rNullStep = int(len(rNullIdx)/numOnlineRuns) + 1
         
         try:
             for iEpoch in range(self.numEpochs):
                 if self.batch:
                     self.trainer.step(self.fDictList, self.problemArr);
                 else:
-                    # Want to balance each of the chunks used in the online learning.        
-                    shuffle(theIdx);
+                    # Want to balance each of the chunks used in the online learning.
+                    if isNullRows:
+                        shuffle(nNullIdx);
+                        shuffle(lNullIdx)
+                        shuffle(rNullIdx)
+                    else:
+                        shuffle(theIdx);
                                         
                     for iOnlineRun in range(numOnlineRuns):
-                        rowStart = iOnlineRun * theStep;
-                        rowEnd = rowStart + theStep;
-                        subIdx = theIdx[rowStart:rowEnd];
-                        subProbArr = self.problemArr[subIdx, :]
+                        if isNullRows:
+                            nNullStart = iOnlineRun * nNullStep
+                            nNullEnd = nNullStart + nNullStep
+                            lNullStart = iOnlineRun * lNullStep
+                            lNullEnd = lNullStart + lNullStep
+                            rNullStart = iOnlineRun * rNullStep
+                            rNullEnd = rNullStart + rNullStep
+
+                            subProbArr = concatenate((self.problemArr[nNullIdx[nNullStart:nNullEnd], :],
+                                                      self.problemArr[lNullIdx[lNullStart:lNullEnd], :],
+                                                      self.problemArr[rNullIdx[rNullStart:rNullEnd], :]))
+                            
+                        else:
+                            rowStart = iOnlineRun * theStep;
+                            rowEnd = rowStart + theStep;
+                            subIdx = theIdx[rowStart:rowEnd];
+                            subProbArr = self.problemArr[subIdx, :]
                         self.trainer.step(self.fDictList, subProbArr);
                 
                 myLog.debug('About to call cost in postEpoch call')
@@ -137,7 +172,7 @@ class PairMonteFeatDictClassifier:
         error = log(sigOut)
         currCost = -error.sum();
         
-        decayContrib = self.l2decay * (self.params**2).sum();
+        decayContrib = self.totalL2Decay * (self.params**2).sum();
         theAcc = accuracy(sigOut, 1);
         theRMSE = rmse(sigOut, 1);
 
@@ -175,6 +210,28 @@ class PairMonteFeatDictClassifier:
         
         Converts the fDictList into an lDataArr and rDataArr.  (Assumes that the keys of the dictionary
         are the columns);
+
+        Changed to setup a null version.
+        If the id for a given row is -1, then set the corresponding row to be ALL zeros.
+        This is used in ranking to impose an order around a classification threshold.  Eg:
+        If we had the following data
+        grp1 rowid1 class1
+        grp1 rowid2 class1
+        grp1 rowid3 class0
+        grp1 rowid4 class0
+
+        We might have the following problemArr
+        rowid1 rowid3
+        rowid1 rowid4
+        rowid1 -1
+        rowid2 rowid3
+        rowid2 rowid4
+        rowid2 -1
+        -1 rowid3
+        -1 rowid4
+
+        rowid1 and rowid2 should be greater than both rowid3 and rowid4 AND greater than zero
+        rowid3 and rowid4 should be LESS than zero
         """
         for rowStart in range(0, probArr.shape[0], self.gradientChunkSize):
             self.lDataArr *= 0.0;
@@ -184,12 +241,19 @@ class PairMonteFeatDictClassifier:
             for iRow, subIdxArr in enumerate(subProbArr):
                 lIdx = subIdxArr[0]
                 rIdx = subIdxArr[1]
-                # First do the lData
-                self.mapFDictToArray(fDictList[lIdx], self.lDataArr, iRow)
-                self.mapFDictToArray(fDictList[rIdx], self.rDataArr, iRow)
+                
+                # Map only if id is not -1
+                if lIdx == -1:
+                    self.lDataArr[iRow, :] *= 0.0
+                else:
+                    self.mapFDictToArray(fDictList[lIdx], self.lDataArr, iRow)
+                if rIdx == -1:
+                    self.rDataArr[iRow, :] *= 0.0
+                else:
+                    self.mapFDictToArray(fDictList[rIdx], self.rDataArr, iRow)
                 
             numRows = subProbArr.shape[0];
-            yield self.lDataArr[:numRows, :].T, self.rDataArr[:numRows].T;
+            yield self.lDataArr[:numRows, :].T, self.rDataArr[:numRows].T, subProbArr;
     
     def cost(self, fDictList, problemArr):
         """Evaluate the error function.
@@ -198,8 +262,8 @@ class PairMonteFeatDictClassifier:
         Assume that the lArr is always 'preferred' over the rArr.
         """
         theCost = 0;
-        for lSubData, rSubData in self.gradChunkDataIterator(fDictList, problemArr):
-            lTargs = ones(problemArr.shape[0])
+        for lSubData, rSubData, subProbArr in self.gradChunkDataIterator(fDictList, problemArr):
+            #lTargs = ones(problemArr.shape[0])
             # Here we simply need to calc the cost 
             lOut = self.layerModel.fprop(lSubData)
             rOut = self.layerModel.fprop(rSubData)
@@ -213,7 +277,7 @@ class PairMonteFeatDictClassifier:
             newCostContrib = error.sum();
             theCost -= newCostContrib;
         
-        decayContribution = self.l2decay * (self.params**2).sum();
+        decayContribution = self.l2decay * (self.params**2).sum() * problemArr.shape[0];
 
         if self.chunklog:
             myLog.debug('decayContribution : %.4f, cost : %.4f' % (decayContribution, theCost));
@@ -235,40 +299,60 @@ class PairMonteFeatDictClassifier:
         meanDOut = [];
         minDOut = [];
         maxDOut = [];
-        for lSubData, rSubData in self.gradChunkDataIterator(fDictList, problemArr):
+        for lSubData, rSubData, subProbArr in self.gradChunkDataIterator(fDictList, problemArr):
             # First calc the contribution when looking at the left to right
-            rOut = self.layerModel.fprop(rSubData)
-            lOut = self.layerModel.fprop(lSubData)
+            ## Only include data that comes from non-NULL on the left
+            nonLNullRows = subProbArr[:,0]>-1 
+            rd = rSubData[:, nonLNullRows]
+            ld = lSubData[:, nonLNullRows]
+            rOut = self.layerModel.fprop(rd)
+            lOut = self.layerModel.fprop(ld)
             sigOut = sigmoid(lOut - rOut);
             absDiffOut = abs(lOut - rOut);
 
             d_outputs = (sigOut - 1);
-            meanDOut.append(mean(abs(d_outputs)));
-            minDOut.append(min(d_outputs));
-            maxDOut.append(max(d_outputs));
+            if len(d_outputs) > 0 and d_outputs.shape[1] > 0:
+                try:
+                    meanDOut.append(mean(abs(d_outputs)));
+                    minDOut.append(min(d_outputs));
+                    maxDOut.append(max(d_outputs));
+                except Exception, e:
+                    myLog.error(e)
+                    myLog.info('Some error, d_outputs : %s' % pprint.pformat(d_outputs))
+                    myLog.info('Some error, len(d_outputs) : %s' % len(d_outputs))
+                    raise e
             
-            self.layerModel.bprop(d_outputs, lSubData);
-            currGradContrib = self.layerModel.grad(d_outputs, lSubData)
-            currGradContrib = currGradContrib.sum(1);
-            currGrad += currGradContrib;
+                self.layerModel.bprop(d_outputs, ld);
+                currGradContrib = self.layerModel.grad(d_outputs, ld)
+                currGradContrib = currGradContrib.sum(1);
+                currGrad += currGradContrib;
             
             ## Then do the same, but going to the right.
             # need to fprop on the right side again
-            rOut = self.layerModel.fprop(rSubData)
+            # Only use rows that are non-null on the right
+            nonRNullRows = subProbArr[:,1]>-1 
+            rd = rSubData[:, nonRNullRows]
+            ld = lSubData[:, nonRNullRows]
+
+            lOut = self.layerModel.fprop(ld)
+            rOut = self.layerModel.fprop(rd)
             sigOut = sigmoid(rOut - lOut);
             d_outputs = sigOut;
-            self.layerModel.bprop(d_outputs, rSubData)
-            currGradContrib = self.layerModel.grad(d_outputs, rSubData)
-            currGradContrib = currGradContrib.sum(1)
-            currGrad += currGradContrib;
-        
-        
-        decayContribution = 2 * self.l2decay * self.params;
+            if len(d_outputs > 0) and d_outputs.shape[1] > 0:
+                self.layerModel.bprop(d_outputs, rd)
+                currGradContrib = self.layerModel.grad(d_outputs, rd)
+                currGradContrib = currGradContrib.sum(1)
+                currGrad += currGradContrib;
+
+        #myLog.info('problemArr.shape[0]: %d' % problemArr.shape[0])
+        decayContribution = 2 * self.l2decay * self.params * problemArr.shape[0]
+        #myLog.info('min, max decayContribution: %0.4f %0.4f' % (min(decayContribution), max(decayContribution)))
         
         currGrad += decayContribution;
         if self.chunklog:
             myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' \
-                        % (abs(currGrad).sum(), self.l2decay * (self.params**2).sum(), mean(currGrad), max(abs(currGrad))));
+                        % (abs(currGrad).sum(), self.l2decay * (self.params**2).sum() * problemArr.shape[0],
+                           mean(currGrad), max(abs(currGrad))));
         return currGrad;
     
     

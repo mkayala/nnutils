@@ -141,6 +141,7 @@ class AdaptiveLocalStepGradDescent(Trainer):
         self.model = model;
         self.exponentAvgM = exponentAvgM;
         self.qLearningRate = qLearningRate;
+        self.maxMuVect = None
         
         self.muVect = self.setupMu(onlineChunkSize, initialMu, self.model.params.shape, numfeats, numhidden, numout)
         
@@ -152,7 +153,7 @@ class AdaptiveLocalStepGradDescent(Trainer):
     
     def setupMu(self, onlineChunkSize, initialMu, paramShape, numfeats, numhidden, numout):
         """Setup the initial mu vector"""
-        globalMu = initialMu / sqrt(4.0 * onlineChunkSize);
+        globalMu = initialMu / sqrt(8.0 * onlineChunkSize);
         muVect = globalMu * ones(paramShape);
         
         if numhidden == 0:
@@ -164,6 +165,8 @@ class AdaptiveLocalStepGradDescent(Trainer):
             muVect[numfeats * numhidden + numhidden:] /= sqrt(numhidden + 1);
             
         #log.debug('Initial muVect: %s' % pformat(muVect));
+        self.maxMuVect = ones(len(muVect))
+        self.maxMuVect *= muVect * 2
         return muVect;
     
     
@@ -178,10 +181,11 @@ class AdaptiveLocalStepGradDescent(Trainer):
         
         # Uodate the muVect
         possUpdate = 1 + self.qLearningRate * g * self.expAvgGrad / self.sqExpAvgGrad
-        self.muVect *= where(possUpdate < 0.1, 0.1, possUpdate);
+        #self.muVect *= where(possUpdate < 0.01, 0.01, possUpdate);
+        self.muVect *= possUpdate
         
         # Do something to cap the update rate.  This is allowing the step rate to overpower the decay completely
-        self.muVect = where(self.muVect > 5.0, 4.0, self.muVect);
+        self.muVect = where(self.muVect > self.maxMuVect, self.maxMuVect, self.muVect);
         
         # Then update the exponential average
         self.expAvgGrad *= self.exponentAvgM;

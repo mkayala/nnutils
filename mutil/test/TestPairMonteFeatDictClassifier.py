@@ -42,6 +42,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         self.highFeatDictList = self.__generateFeatDictList(self.NUM_PAIRS, self.HIGH_DIST_MEANS, self.HIGH_DIST_VARS);
         
         self.FEAT_DATA, self.PROB_ARR = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList);
+        self.FEAT_DATA_N, self.PROB_ARR_N = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList, nullVal=True);
                 
         numFeats = len(self.HIGH_DIST_VARS);
         
@@ -83,12 +84,28 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         
         return featDictList;
     
-    def __generateProbMatFeatDictList(self, featDictList1, featDictList2):
+    def __generateProbMatFeatDictList(self, featDictList1, featDictList2, nullVal=False):
         """Convenience to take two feat dict lists and return the featDictList, probMat to be able to write out 
         as input. """
-        probMat = zeros((len(featDictList1), 2), dtype=int)
-        probMat[:, 0] = range(len(featDictList1));
-        probMat[:, 1] = probMat[:, 0] + len(featDictList1)
+        if nullVal:
+            probMat = zeros((len(featDictList1), 2), dtype=int)
+            probMat[:, 0] = range(len(featDictList1));
+            probMat[:, 1] = probMat[:, 0] + len(featDictList1)
+
+            pm2 = zeros((len(featDictList1), 2), dtype=int)
+            pm2[:, 0] = range(len(featDictList1));
+            pm2[:, 1] = -1
+
+            pm3 = zeros((len(featDictList1), 2), dtype=int)
+            pm3[:, 1] = probMat[:, 1]
+            pm3[:, 0] = -1
+            #probMat = concatenate(( probMat, pm2, pm3))
+            probMat = concatenate(( probMat, probMat, pm2, pm3))
+            #probMat = concatenate((probMat, probMat, probMat, pm2, pm3))
+        else:
+            probMat = zeros((len(featDictList1), 2), dtype=int)
+            probMat[:, 0] = range(len(featDictList1));
+            probMat[:, 1] = probMat[:, 0] + len(featDictList1)
         
         retFeatDictList = [];
         retFeatDictList.extend(featDictList1)
@@ -133,7 +150,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         outputs = where(outputs > 1-OFFSET_EPSILON, 1-OFFSET_EPSILON, outputs);
         
         # Assuming all is 1
-        currCost =  2 * -(log(outputs)).sum();
+        currCost =  -(log(outputs)).sum();
         decayContrib = classifier.l2decay * (classifier.params**2).sum();
         currCost += decayContrib;
         currRMSE = rmse(outputs, 1);
@@ -151,7 +168,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         self.ARCH_MDL.trainertype = 'gdescadapt';
         #self.ARCH_MDL.trainertype = 'gdesc';
         self.ARCH_MDL.onlineChunkSize = 500;
-        self.ARCH_MDL.qLearningRate = 0.05;
+        self.ARCH_MDL.qLearningRate = 0.01;
         self.ARCH_MDL.exponentAvgM = 0.95;
         self.ARCH_MDL.numhidden = 100;
         self.ARCH_MDL.paramVar = 0.0001;
@@ -159,9 +176,28 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         
         self.ARCH_MDL.gradientChunkSize = 100;
         self.ARCH_MDL.l2decay = 0.001;
-        self.ARCH_MDL.numEpochs = 10;
+        self.ARCH_MDL.numEpochs = 5;
         self.ARCH_MDL.learningrate = 0.01;
         self.__generalTest(self.FEAT_DATA, self.PROB_ARR, self.ARCH_MDL);
+
+    def test_GDescApapt_NULLVal(self):
+        """Test of training with a NULL value (-1 id in probMat) to represent a 0-vector input"""
+        self.ARCH_MDL.batch = False;    
+        self.ARCH_MDL.trainertype = 'gdescadapt';
+        #self.ARCH_MDL.trainertype = 'gdesc';
+        self.ARCH_MDL.onlineChunkSize = 2000;
+        self.ARCH_MDL.qLearningRate = 0.01;
+        self.ARCH_MDL.exponentAvgM = 0.95;
+        self.ARCH_MDL.numhidden = 3;
+        self.ARCH_MDL.paramVar = 0.0001;
+        self.ARCH_MDL.setupParams();
+        
+        self.ARCH_MDL.gradientChunkSize = 100;
+        self.ARCH_MDL.l2decay = 0.001
+        self.ARCH_MDL.numEpochs = 10;
+        self.ARCH_MDL.learningrate = 0.01;
+        self.__generalTest(self.FEAT_DATA_N, self.PROB_ARR_N, self.ARCH_MDL);
+
     
     
 def suite():
