@@ -12,7 +12,7 @@ import gzip;
 from optparse import OptionParser;
 from pprint import pformat;
 
-from nnutils..Util import FeatureDictReader;
+from nnutils.Util import FeatureDictReader;
 from nnutils.mutil.MonteArchModel import MonteArchModel, loadArchModel, saveArchModel;
 from nnutils.mutil.PairMonteFeatDictClassifier import PairMonteFeatDictClassifier;
 from nnutils.mutil.Util import accuracy, rmse, sigmoid;
@@ -92,8 +92,8 @@ class FDictPairTrainer:
         ifs = open(inProbArrFile);
         self.probArr = [];
         for line in ifs:
-            chunks = [int(x) for x in line.strip().split()]
-            self.probArr.append([chunks[0], chunks[2]]);
+            chunks = line.strip().split()
+            self.probArr.append([int(chunks[0]), int(chunks[2])]);
         ifs.close();
         self.probArr = array(self.probArr);
         
