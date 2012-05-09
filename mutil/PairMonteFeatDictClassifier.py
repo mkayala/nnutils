@@ -66,7 +66,10 @@ class PairMonteFeatDictClassifier:
         # Meat
         self.params = self.archModel.params;
         # Set this up to be a regressor.
-        self.layerModel = MonteNeuralNetClassifier(self.archModel.numfeats, self.archModel.numhidden, self.params, sigmoidOut=False);
+        self.layerModel = MonteNeuralNetClassifier(self.archModel.numfeats,
+                                                   self.archModel.numhidden,
+                                                   self.params,
+                                                   sigmoidOut=False);
         self.trainer = loadMonteTrainer(self, self.archModel);
         
         # Minor details
@@ -75,7 +78,8 @@ class PairMonteFeatDictClassifier:
         self.gradientChunkSize = self.archModel.gradientChunkSize;
         self.numEpochs = self.archModel.numEpochs;
         self.l2decay = self.archModel.l2decay;
-        self.l2decay /= len(self.fDictList)
+        if self.fDictList is not None and len(self.fDictList) > 0:
+            self.l2decay /= len(self.fDictList)
         self.totalL2Decay = self.archModel.l2decay
         self.costEpsilon = self.archModel.costEpsilon;
         
