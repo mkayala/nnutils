@@ -16,7 +16,7 @@ import sys
 import os
 import pprint;
 
-from numpy import arange, multiply, log, newaxis, zeros, min, max;
+from numpy import arange, multiply, log, newaxis, zeros, min, max, std;
 from numpy import any, isnan, where, mean, concatenate, array, ones, zeros;
 from numpy.random import shuffle;
 
@@ -60,6 +60,9 @@ class PairMonteFeatDictClassifier:
         ## Logging options
         self.chunklog = chunklog
         self.epochlog = epochlog
+
+        ## How many epochs in a row of below precision change.
+        self.nconvergesteps = 3
     
     def setupModels(self):
         """Build the basic trainer setup - based on the ArchModel"""
@@ -149,8 +152,9 @@ class PairMonteFeatDictClassifier:
                 self.postEpochCall(iEpoch)
                 
                 # Test for convergence
-                if len(self.costTrajectory) > 1:
-                    if abs(self.costTrajectory[-1] - self.costTrajectory[-2]) < self.costEpsilon:
+                if len(self.costTrajectory) > self.nconvergesteps:
+                    if std(self.costTrajectory[-self.nconvergesteps:]) < self.costEpsilon:
+                        
                         myLog.critical('Convergence after Epoch %d!!' % iEpoch);
                         return self.costTrajectory;
                 
