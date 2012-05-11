@@ -63,6 +63,7 @@ class PairMonteFeatDictClassifier:
 
         ## How many epochs in a row of below precision change.
         self.nconvergesteps = 3
+        self.checkconverge = False
     
     def setupModels(self):
         """Build the basic trainer setup - based on the ArchModel"""
@@ -152,9 +153,8 @@ class PairMonteFeatDictClassifier:
                 self.postEpochCall(iEpoch)
                 
                 # Test for convergence
-                if len(self.costTrajectory) > self.nconvergesteps:
+                if self.checkconverge and len(self.costTrajectory) > self.nconvergesteps:
                     if std(self.costTrajectory[-self.nconvergesteps:]) < self.costEpsilon:
-                        
                         myLog.critical('Convergence after Epoch %d!!' % iEpoch);
                         return self.costTrajectory;
                 
@@ -163,7 +163,8 @@ class PairMonteFeatDictClassifier:
             
             myLog.critical('Never completely converged after %d epochs!' % self.numEpochs);
         except KeyboardInterrupt, e:
-            myLog.critical('Interrupted with Keyboard after %d epochs, stopping here, currCost = %f' % (iEpoch, self.costTrajectory[-1]))
+            myLog.critical('Interrupted with Keyboard after %d epochs, stopping here, currCost = %f' % \
+                           (iEpoch, self.costTrajectory[-1]))
             return self.costTrajectory;
         return self.costTrajectory;
     
