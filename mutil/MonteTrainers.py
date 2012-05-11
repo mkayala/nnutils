@@ -166,7 +166,7 @@ class AdaptiveLocalStepGradDescent(Trainer):
             
         #log.debug('Initial muVect: %s' % pformat(muVect));
         self.maxMuVect = ones(len(muVect))
-        self.maxMuVect *= muVect * 2
+        self.maxMuVect *= muVect * 10
         return muVect;
     
     
