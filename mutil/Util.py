@@ -19,9 +19,9 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 """Here are some common ML functions."""
-from numpy import exp;
+from numpy import exp, where, inf;
 def sigmoid(x):
-    return 1./(1. + exp(-x));
+    return where(exp(-x) == inf, 0.0, 1./(1. + exp(-x)));
 
 def identity(x):
     return x;
