@@ -29,7 +29,7 @@ from Const import OFFSET_EPSILON
 
 class PairMonteFeatDictClassifier:
     """Class to fit params for pair wise classification using shared weight neural nets"""
-    def __init__(self, archModel=None, fDictList=None, problemArr=None, callback=None, chunklog=False, epochlog=True):
+    def __init__(self, archModel=None, fDictList=None, problemArr=None, callback=None, chunklog=True, epochlog=True):
         """Constructor.
         
         archModel - is a MonteArchModel object with parameters and machine specifics
@@ -64,6 +64,9 @@ class PairMonteFeatDictClassifier:
         ## How many epochs in a row of below precision change.
         self.nconvergesteps = 3
         self.checkconverge = False
+
+        self.saveparams = True
+        self.paramHistory = []
     
     def setupModels(self):
         """Build the basic trainer setup - based on the ArchModel"""
@@ -90,6 +93,9 @@ class PairMonteFeatDictClassifier:
         # Set up the data array
         self.lDataArr = zeros((self.gradientChunkSize, self.archModel.numfeats));
         self.rDataArr = zeros((self.gradientChunkSize, self.archModel.numfeats));
+
+        if self.saveparams:
+            self.archModel.paramHistory = self.paramHistory
     
     
     def train(self):
@@ -170,6 +176,8 @@ class PairMonteFeatDictClassifier:
     
     def postEpochCall(self, epoch):
         """Convenience to run some stats at the end of each epoch."""
+        if self.saveparams:
+            self.paramHistory.append(self.params[:])
         outputs = self.apply(self.fDictList);
         lOut = outputs[self.problemArr[:, 0]]
         rOut = outputs[self.problemArr[:, 1]]
@@ -362,6 +370,7 @@ class PairMonteFeatDictClassifier:
             myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' \
                         % (abs(currGrad).sum(), self.l2decay * (self.params**2).sum() * problemArr.shape[0],
                            mean(currGrad), max(abs(currGrad))));
+            myLog.debug('max(params) : %.4f, min(params) : %.4f' % (min(self.params), max(self.params))
         return currGrad;
     
     
