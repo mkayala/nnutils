@@ -51,7 +51,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         archModel.paramVar = 0.01
         archModel.numhidden = 0;
         archModel.numfeats = numFeats;
-        archModel.l2decay = 0.001;
+        archModel.l2decay = 1.0;
         archModel.gradientChunkSize = 500;
         archModel.onlineChunkSize = 4000;
         archModel.cgIterations = 2;
@@ -162,7 +162,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
     
     
     
-    def test_GDescApapt(self):
+    def _test_GDescApapt(self):
         """Test of simple run through using gdescadapt."""
         self.ARCH_MDL.batch = False;    
         self.ARCH_MDL.trainertype = 'gdescadapt';
@@ -170,12 +170,12 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         self.ARCH_MDL.onlineChunkSize = 500;
         self.ARCH_MDL.qLearningRate = 0.01;
         self.ARCH_MDL.exponentAvgM = 0.95;
-        self.ARCH_MDL.numhidden = 100;
+        self.ARCH_MDL.numhidden = 10;
         self.ARCH_MDL.paramVar = 0.0001;
         self.ARCH_MDL.setupParams();
         
         self.ARCH_MDL.gradientChunkSize = 100;
-        self.ARCH_MDL.l2decay = 0.001;
+        self.ARCH_MDL.l2decay = 10.0;
         self.ARCH_MDL.numEpochs = 5;
         self.ARCH_MDL.learningrate = 0.01;
         self.__generalTest(self.FEAT_DATA, self.PROB_ARR, self.ARCH_MDL);
@@ -193,7 +193,7 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         self.ARCH_MDL.setupParams();
         
         self.ARCH_MDL.gradientChunkSize = 100;
-        self.ARCH_MDL.l2decay = 0.001
+        self.ARCH_MDL.l2decay = 1000.0
         self.ARCH_MDL.numEpochs = 10;
         self.ARCH_MDL.learningrate = 0.01;
         self.__generalTest(self.FEAT_DATA_N, self.PROB_ARR_N, self.ARCH_MDL);
