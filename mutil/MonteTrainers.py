@@ -181,6 +181,7 @@ class AdaptiveLocalStepGradDescent(Trainer):
         
         # Uodate the muVect
         possUpdate = 1 + self.qLearningRate * g * self.expAvgGrad / self.sqExpAvgGrad
+        log.debug('max(possUpdate): %.4f,  min(possUpdate): %.4f' % (max(possUpdate), min(possUpdate)))
         #self.muVect *= where(possUpdate < 0.01, 0.01, possUpdate);
         self.muVect *= possUpdate
         

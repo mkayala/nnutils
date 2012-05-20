@@ -370,6 +370,7 @@ class PairMonteFeatDictClassifier:
             myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' \
                         % (abs(currGrad).sum(), self.l2decay * (self.params**2).sum() * problemArr.shape[0],
                            mean(currGrad), max(abs(currGrad))));
+            myLog.debug('max(currGrad) : %.4f, min(currGrad) : %.4f' % (max(currGrad), min(currGrad)))
             myLog.debug('max(params) : %.4f, min(params) : %.4f' % (max(self.params), min(self.params)))
             myLog.debug('max(decayContribution) : %.4f, min(decayContribution) : %.4f' % (max(decayContribution),
                                                                                           min(decayContribution)))

@@ -31,18 +31,18 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         """Set up anything for the tests.., """
         super(TestPairMonteFeatDictClassifier, self).setUp();
         
-        self.LOW_DIST_MEANS = array([10, -10, 5, -5]);
-        self.LOW_DIST_VARS = array([5, 5, 5, 5])
+        self.LOW_DIST_MEANS = array([0] *10);
+        self.LOW_DIST_VARS = array([.5] *10)
         
-        self.HIGH_DIST_MEANS = array([3, 2, 0, 5]);
-        self.HIGH_DIST_VARS = array([3, 2, 5, 5]);
+        self.HIGH_DIST_MEANS = array([.1, .2, .4, .5, .1, .1, .1, .1, .1, .1]);
+        self.HIGH_DIST_VARS = array([.1] *10);
         
-        self.NUM_PAIRS = 10000
+        self.NUM_PAIRS = 100000
         self.lowFeatDictList = self.__generateFeatDictList(self.NUM_PAIRS, self.LOW_DIST_MEANS, self.LOW_DIST_VARS);
-        self.highFeatDictList = self.__generateFeatDictList(self.NUM_PAIRS, self.HIGH_DIST_MEANS, self.HIGH_DIST_VARS);
+        self.highFeatDictList = self.__generateFeatDictList(self.NUM_PAIRS/10, self.HIGH_DIST_MEANS, self.HIGH_DIST_VARS);
         
-        self.FEAT_DATA, self.PROB_ARR = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList);
-        self.FEAT_DATA_N, self.PROB_ARR_N = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList, nullVal=True);
+        self.FEAT_DATA, self.PROB_ARR = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList, rep=10);
+        self.FEAT_DATA_N, self.PROB_ARR_N = self.__generateProbMatFeatDictList(self.highFeatDictList, self.lowFeatDictList, nullVal=True,rep=10);
                 
         numFeats = len(self.HIGH_DIST_VARS);
         
@@ -84,9 +84,13 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
         
         return featDictList;
     
-    def __generateProbMatFeatDictList(self, featDictList1, featDictList2, nullVal=False):
-        """Convenience to take two feat dict lists and return the featDictList, probMat to be able to write out 
+    def __generateProbMatFeatDictList(self, featDictList1, featDictList2, nullVal=False, rep=1):
+        """Convenience to take two feat dict lists and return the featDictList, probMat to be able to write out
+        
         as input. """
+        fd1 = [];
+        [fd1.extend(featDictList1) for i in range(rep)]
+        featDictList1 = fd1
         if nullVal:
             probMat = zeros((len(featDictList1), 2), dtype=int)
             probMat[:, 0] = range(len(featDictList1));
@@ -162,25 +166,25 @@ class TestPairMonteFeatDictClassifier(unittest.TestCase):
     
     
     
-    def _test_GDescApapt(self):
+    def test_GDescApapt(self):
         """Test of simple run through using gdescadapt."""
         self.ARCH_MDL.batch = False;    
         self.ARCH_MDL.trainertype = 'gdescadapt';
         #self.ARCH_MDL.trainertype = 'gdesc';
-        self.ARCH_MDL.onlineChunkSize = 500;
-        self.ARCH_MDL.qLearningRate = 0.01;
+        self.ARCH_MDL.onlineChunkSize = 5000;
+        self.ARCH_MDL.qLearningRate = 0.5;
         self.ARCH_MDL.exponentAvgM = 0.95;
         self.ARCH_MDL.numhidden = 10;
-        self.ARCH_MDL.paramVar = 0.0001;
+        self.ARCH_MDL.paramVar = 0.001;
         self.ARCH_MDL.setupParams();
         
-        self.ARCH_MDL.gradientChunkSize = 100;
-        self.ARCH_MDL.l2decay = 10.0;
-        self.ARCH_MDL.numEpochs = 5;
-        self.ARCH_MDL.learningrate = 0.01;
+        self.ARCH_MDL.gradientChunkSize = 1000;
+        self.ARCH_MDL.l2decay = 1000.0;
+        self.ARCH_MDL.numEpochs = 15;
+        self.ARCH_MDL.learningrate = 0.1;
         self.__generalTest(self.FEAT_DATA, self.PROB_ARR, self.ARCH_MDL);
 
-    def test_GDescApapt_NULLVal(self):
+    def _test_GDescApapt_NULLVal(self):
         """Test of training with a NULL value (-1 id in probMat) to represent a 0-vector input"""
         self.ARCH_MDL.batch = False;    
         self.ARCH_MDL.trainertype = 'gdescadapt';
