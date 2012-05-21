@@ -37,6 +37,7 @@ class FDictClassTrainer:
         self.idxArr = None;     # Map the targets to places in the featDictList
         self.archModel = None;
         self.classifier = None;
+
     
     def main(self, argv):
         """Callable from Command line"""

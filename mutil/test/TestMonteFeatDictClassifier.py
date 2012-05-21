@@ -33,7 +33,7 @@ class TestMonteFeatDictClassifier(unittest.TestCase):
         sizePosData = 10000;
         sizeNegData = 10000;
         
-        posMeans = array([-2, 5, 6 ])
+        posMeans = array([-.1, .2, .1 ])
         negMeans = array([.1, -.2, -.3 ])
         
         fakePosData = posMeans + randn(sizePosData, numFeats)*.1;
@@ -117,16 +117,18 @@ class TestMonteFeatDictClassifier(unittest.TestCase):
         self.ARCH_MDL.batch = False;    
         self.ARCH_MDL.trainertype = 'gdescadapt';
         self.ARCH_MDL.onlineChunkSize = 1000;
-        self.ARCH_MDL.qLearningRate = 0.05;
+        self.ARCH_MDL.qLearningRate = 0.5;
         self.ARCH_MDL.exponentAvgM = 0.95;
         self.ARCH_MDL.numhidden = 10;
         self.ARCH_MDL.paramVar = 0.001;
         self.ARCH_MDL.setupParams();
         
-        self.ARCH_MDL.gradientChunkSize = 500;
-        self.ARCH_MDL.l2decay = 0.01;
+        self.ARCH_MDL.gradientChunkSize = 1000;
+        self.ARCH_MDL.onlineChunkSize = 2000;
+        #self.ARCH_MDL.l2decay = 0.01;
+        self.ARCH_MDL.l2decay = 10;
         self.ARCH_MDL.numEpochs = 10;
-        self.ARCH_MDL.learningrate = 1;
+        self.ARCH_MDL.learningrate = 0.1;
         self.__generalTest(self.FEAT_DATA, self.TARG_ARR, self.ARCH_MDL, self.IDX_ARR);
 
 

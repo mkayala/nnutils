@@ -29,7 +29,7 @@ from Const import OFFSET_EPSILON
 
 class PairMonteFeatDictClassifier:
     """Class to fit params for pair wise classification using shared weight neural nets"""
-    def __init__(self, archModel=None, fDictList=None, problemArr=None, callback=None, chunklog=True, epochlog=True):
+    def __init__(self, archModel=None, fDictList=None, problemArr=None, callback=None, chunklog=False, epochlog=True):
         """Constructor.
         
         archModel - is a MonteArchModel object with parameters and machine specifics

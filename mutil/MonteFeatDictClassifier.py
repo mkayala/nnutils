@@ -23,7 +23,8 @@ from Const import OFFSET_EPSILON
 
 class MonteFeatDictClassifier:
     """Class to train or predict with a basic classifier, using feature dictionaries"""
-    def __init__(self, archModel=None, fDictList=None, targetArr=None, idxArr=None, callback=None, chunklog=False, epochlog=True):
+    def __init__(self, archModel=None, fDictList=None, targetArr=None, idxArr=None, callback=None,
+                 chunklog=True, epochlog=True):
         """Constructor
         
         archModel - is a MonteArchModel object with parameters and machine specifics
@@ -51,6 +52,13 @@ class MonteFeatDictClassifier:
         ## Logging
         self.chunklog = chunklog
         self.epochlog = epochlog
+
+        ## Convergence:
+        self.nconvergesteps = 3
+        self.checkconverge = False
+
+        self.saveparams = False
+        self.paramHistory = []
     
     def setupModels(self):
         """Build the basic trainer setup - based on the ArchModel"""
@@ -65,16 +73,21 @@ class MonteFeatDictClassifier:
         self.gradientChunkSize = self.archModel.gradientChunkSize;
         self.numEpochs = self.archModel.numEpochs;
         self.l2decay = self.archModel.l2decay;
-
+        if self.idxArr is not None and len(self.idxArr) > 0:
+            self.l2decay /= float(len(self.idxArr))
+        self.totalL2Decay = self.archModel.l2decay
+        
         ## Sets up when we call something converged.
         ## The sd of costs in the costTrajectory over the past convergeEpochs
         ## must be less than costEpsilon to be considered as converged.
         self.costEpsilon = self.archModel.costEpsilon;
-        self.convergeEpochs = 5;
+        self.convergeEpochs = self.nconvergesteps;
         
         # Set up the data array
         self.dataArr = zeros((self.gradientChunkSize, self.archModel.numfeats));
-        
+
+        if self.saveparams:
+            self.archModel.paramHistory = paramHistory
     
     def train(self):
         """Method to run through all the data and train away"""
@@ -101,8 +114,6 @@ class MonteFeatDictClassifier:
                     shuffle(c1Idx);
                     shuffle(c0Idx);
                     
-                    # Calculate an amount to adjust the gradient by because of online 
-                    onlineAdjustmentFactor = None; #float(self.onlineChunkSize) / float(self.dataArr.shape[0]);
                     
                     for iOnlineRun in range(numOnlineRuns):
                         c1RowStart = iOnlineRun * c1Step;
@@ -114,14 +125,14 @@ class MonteFeatDictClassifier:
                         #myLog.debug('minshuffidx : %d, maxshuffidx: %d' % (min(theInds), max(theInds)))
                         subTargets = self.targetArr[theInds];
                         subIdx = self.idxArr[theInds];
-                        self.trainer.step(self.fDictList, subTargets, subIdx, onlineAdjustmentFactor);
+                        self.trainer.step(self.fDictList, subTargets, subIdx);
 
                 if self.epochlog:
                     myLog.debug('About to call cost in postEpoch call')
                 self.postEpochCall(iEpoch);
                 
                 # Test for convergence
-                if len(self.costTrajectory) > self.convergeEpochs + 1:
+                if self.checkconverge and len(self.costTrajectory) > self.convergeEpochs + 1:
                     if std(self.costTrajectory[-self.convergeEpochs:]) < self.costEpsilon:
                         myLog.critical('Convergence after Epoch %d!!' % iEpoch);
                         return self.costTrajectory;
@@ -145,7 +156,7 @@ class MonteFeatDictClassifier:
         
         error = multiply(self.targetArr, log(outputs)) + multiply(1 - self.targetArr, log(1-outputs));
         currCost = -error.sum();
-        decayContrib = self.l2decay * (self.params**2).sum();
+        decayContrib = self.totalL2Decay * (self.params**2).sum();
         theAcc = accuracy(outputs, self.targetArr);
         theRMSE = rmse(outputs, self.targetArr);
 
@@ -155,7 +166,7 @@ class MonteFeatDictClassifier:
         self.costTrajectory.append(currCost);
     
     
-    def cost(self, fDictList, targetArr, idxArr, onlineAdjustmentFactor=None):
+    def cost(self, fDictList, targetArr, idxArr):
         """Evaluate the error function.
         
         Even in batch mode, we iterate over the data in smaller chunks.
@@ -171,13 +182,8 @@ class MonteFeatDictClassifier:
             newCostContrib = error.sum();
             theCost -= newCostContrib;
         
-        decayContribution = self.l2decay * (self.params**2).sum();
+        decayContribution = self.l2decay * (self.params**2).sum() * len(idxArr);
         
-        if onlineAdjustmentFactor is not None:
-            # Basically a way to make the cost at each small step be a little smaller (cause 
-            # we end up taking more gradient steps)
-            decayContribution *= onlineAdjustmentFactor;
-
         if self.chunklog:
             myLog.debug('decayContribution : %.4f, cost : %.4f' % (decayContribution, theCost));
         theCost += decayContribution;
@@ -208,7 +214,7 @@ class MonteFeatDictClassifier:
             yield self.dataArr[:numRows, :].T, subTargArr[:numRows].T;
     
     
-    def grad(self, fDictList, targetArr, idxArr, onlineAdjustmentFactor=None):
+    def grad(self, fDictList, targetArr, idxArr):
         """Evaluate the gradient of the error function wrt the params"""
         currGrad = zeros(self.params.shape);
 
@@ -227,18 +233,20 @@ class MonteFeatDictClassifier:
 
             currGrad += currGradContrib;
 
-        decayContribution = 2 * self.l2decay * self.params;
-        
-        if onlineAdjustmentFactor is not None:
-            decayContribution *= onlineAdjustmentFactor;
-        
+        decayContribution = 2 * self.l2decay * self.params * len(idxArr);
+                
         currGrad += decayContribution;
         if self.chunklog:
             myLog.debug('mean(abs(d_outputs)) : %.4f, min(d_outputs): %.4f, max(d_outputs) : %.4f' % \
                         (mean(meanDOut), min(minDOut), max(maxDOut)))
-            myLog.debug('decayContribution : %s' % pprint.pformat(decayContribution));
             myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' % \
-                        (abs(currGrad).sum(), self.l2decay * (self.params**2).sum(), mean(currGrad), max(abs(currGrad))));
+                        (abs(currGrad).sum(), self.l2decay * (self.params**2).sum() * len(idxArr), mean(currGrad), max(abs(currGrad))));
+            myLog.debug('max(currGrad) : %.4f, min(currGrad) : %.4f' % (max(currGrad), min(currGrad)))
+            myLog.debug('max(params) : %.4f, min(params) : %.4f' % (max(self.params), min(self.params)))
+            myLog.debug('max(decayContribution) : %.4f, min(decayContribution) : %.4f' % (max(decayContribution),
+                                                                                          min(decayContribution)))
+            myLog.debug('len(idxArr) = %d' % len(idxArr))
+
         return currGrad;
     
     
