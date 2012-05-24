@@ -236,7 +236,7 @@ class MonteFeatDictClassifier:
         decayContribution = 2 * self.l2decay * self.params * len(idxArr);
                 
         currGrad += decayContribution;
-        if self.chunklog:
+        if self.chunklog and len(meanDOut) > 0:
             myLog.debug('mean(abs(d_outputs)) : %.4f, min(d_outputs): %.4f, max(d_outputs) : %.4f' % \
                         (mean(meanDOut), min(minDOut), max(maxDOut)))
             myLog.debug('||currGrad||^1 : %.4f, ||decayContribution|| : %.4f, mean(currGrad) : %.4f, max(currGrad) : %.4f' % \
