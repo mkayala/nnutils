@@ -112,6 +112,20 @@ class NormalizeFeatDicts:
                         pass
             yield (idVal, newDict)
     
+    def normalizeSingleFeatDict(self, fDict, minMaxDict, colMapObj):
+        """Convenience function for running normalization of a sinlge featDict"""
+        newDict = {};
+        for key, val in fDict.iteritems():
+            if key in minMaxDict and key in colMapObj:
+                (minVal, rangeVal) = minMaxDict[key]
+                newKey = colMapObj[key]
+                newDict[newKey] = (val - minVal)/rangeVal;
+            else:
+                if self.logwarning and key not in minMaxDict:
+                    log.warning('key : %s not in minMaxDict' % str(key))
+                if self.logwarning and key not in colMapObj:
+                    log.warning('key : %s not in colMapObj' % str(key));
+        return newDict;
     
     def main(self, argv):
         """Callable from Command line"""
