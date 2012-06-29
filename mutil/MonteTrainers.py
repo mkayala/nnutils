@@ -14,7 +14,7 @@ from Util import log, sigmoid;
 from Const import EPSILON;
 
 #Using the monte library.. http://montepython.sourceforge.net/
-from monte.gym.trainer import Trainer, updateparams;
+from nnutils.monte.gym.trainer import Trainer, updateparams;
 
 from numpy import min, max, mean;
 
